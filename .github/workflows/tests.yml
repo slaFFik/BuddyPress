@@ -1,0 +1,46 @@
+name: Tests
+
+on: [push]
+
+jobs:
+    build:
+
+        strategy:
+            matrix:
+                php-versions: [7.4]
+        
+        runs-on: ubuntu-20.04 # PHP version 7.4.
+        if: "!contains(github.event.head_commit.message, '[skip ci]')"
+        
+        env:
+            php-ini-values: post_max_size=256M
+        
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@v2
+                
+            -   name: Fetch all git branches
+                run: git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+                
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    tools: pecl
+                    php-version: ${{ matrix.php-versions }}
+                    ini-values: ${{ env.php-ini-values }}
+                env:
+                    update: true
+
+            -   name: Get Composer cache directory
+                id: composer-cache
+                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            -   name: Cache Composer dependencies
+                uses: actions/cache@v1
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                    restore-keys: ${{ runner.os }}-composer-
+
+            -   name: Install Composer dependencies
+                run: composer install --prefer-dist
