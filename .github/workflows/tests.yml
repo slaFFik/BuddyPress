@@ -94,6 +94,7 @@ jobs:
           phpunit --version
 
       - name: Run phpunit tests
+        working-directory: ${{ env.wp-bp-directory }}
         run: phpunit
 #          - name: Set up tests config
 #            run: |
