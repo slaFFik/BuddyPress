@@ -35,11 +35,11 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
           - 33306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=5
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Cancel previous runs of this workflow
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.6.0
         with:
           access_token: ${{ github.token }}
 
@@ -110,10 +110,6 @@ jobs:
         run: |
           composer global require --dev phpunit/phpunit ^6 -q --prefer-dist --no-progress --ansi --no-interaction --no-suggest
           phpunit --version
-
-      - name: DB data
-        run: |
-          echo ${{ job.services.mysql.ports[3306] }}
 
       - name: Set up tests config
         run: |
