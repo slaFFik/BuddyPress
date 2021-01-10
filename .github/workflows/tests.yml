@@ -23,7 +23,7 @@ jobs:
       DB_DATABASE: wordpress_test
       DB_USER: root
       DB_PASSWORD: password
-      DB_HOST: 127.0.0.1:33306
+      DB_HOST: 127.0.0.1
 
     services:
       mysql:
@@ -34,7 +34,7 @@ jobs:
           MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
-          - 33306:3306
+          - 3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
@@ -117,7 +117,7 @@ jobs:
           sed -i "s/youremptytestdbnamehere/${{ env.DB_DATABASE }}/" wp-tests-config.php
           sed -i "s/yourusernamehere/${{ env.DB_USER }}/" wp-tests-config.php
           sed -i "s/yourpasswordhere/${{ env.DB_PASSWORD }}/" wp-tests-config.php
-          sed -i "s/localhost/${{ env.DB_HOST }}/" wp-tests-config.php
+          sed -i "s/localhost/${{ env.DB_HOST }}:${{ job.services.mysql.ports['3306'] }}/" wp-tests-config.php
 
       - name: Upload build artifact (TEMP)
         uses: actions/upload-artifact@v2
@@ -128,4 +128,6 @@ jobs:
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
         run: phpunit
+        env:
+          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
 
