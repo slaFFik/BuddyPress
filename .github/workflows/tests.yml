@@ -22,7 +22,7 @@ jobs:
       wp-bp-directory: src/wp-content/plugins/buddypress
       DB_DATABASE: wordpress_test
       DB_USER: root
-      DB_PASSWORD: root
+      DB_PASSWORD: password
       DB_HOST: 127.0.0.1
 
     services:
