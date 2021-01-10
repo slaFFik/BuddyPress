@@ -7,40 +7,85 @@ jobs:
 
         strategy:
             matrix:
+                wp-versions: [4.9, master]
                 php-versions: [5.6, 7.4]
+
+        name: WP ${{ matrix.wp-versions }} on PHP ${{ matrix.php-versions }}
 
         runs-on: ubuntu-20.04
         if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
         env:
             php-ini-values: post_max_size=256M
+            wp-bp-directory: src/wp-content/plugins/buddypress
 
         steps:
-            -   name: Checkout
-                uses: actions/checkout@v2
+          - name: Cancel previous runs of this workflow
+            uses: styfle/cancel-workflow-action@0.5.0
+            with:
+                access_token: ${{ github.token }}
 
-            -   name: Fetch all git branches
-                run: git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+          - name: Checkout WordPress
+            uses: actions/checkout@v2
+            with:
+              repository: WordPress/wordpress-develop
+              ref: ${{ matrix.wp-versions }}
+              path: ''
 
-            -   name: Setup PHP
-                uses: shivammathur/setup-php@v2
-                with:
-                    tools: pecl
-                    php-version: ${{ matrix.php-versions }}
-                    ini-values: ${{ env.php-ini-values }}
-                env:
-                    update: true
+          - name: Checkout BuddyPress
+            uses: actions/checkout@v2
+            with:
+                path: ${{ env.wp-bp-directory }}
 
-            -   name: Get Composer cache directory
-                id: composer-cache
-                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+          - name: Setup PHP
+            uses: shivammathur/setup-php@v2
+            with:
+                tools: pecl
+                php-version: ${{ matrix.php-versions }}
+                ini-values: ${{ env.php-ini-values }}
+            env:
+                update: true
 
-            -   name: Cache Composer dependencies
-                uses: actions/cache@v1
-                with:
-                    path: ${{ steps.composer-cache.outputs.dir }}
-                    key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-                    restore-keys: ${{ runner.os }}-composer-
+          - name: Get Composer cache directory
+            working-directory: ${{ env.wp-bp-directory }}
+            id: composer-cache
+            run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-            -   name: Install Composer dependencies
-                run: composer install --prefer-dist --no-progress --ansi
+          - name: Cache Composer dependencies
+            uses: actions/cache@v1
+            with:
+                path: ${{ steps.composer-cache.outputs.dir }}
+                key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+                restore-keys: ${{ runner.os }}-composer-
+
+          - name: Install Composer dependencies
+            working-directory: ${{ env.wp-bp-directory }}
+            run: composer install --prefer-dist --no-progress --ansi
+
+          - name: Install NodeJS
+            uses: actions/setup-node@v1
+            with:
+                node-version: 14.15.3
+
+          - name: Cache NodeJS modules
+            uses: actions/cache@v2
+            env:
+                cache-name: cache-node-modules
+            with:
+                # npm cache files are stored in `~/.npm` on Linux/macOS
+                path: ~/.npm
+                key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+                restore-keys: |
+                    ${{ runner.os }}-npm-
+
+          - name: Install Node dependencies
+            working-directory: ${{ env.wp-bp-directory }}
+            run: npm ci
+
+          - name: Upload build artifact (temp)
+            uses: actions/upload-artifact@v2
+            with:
+              name: wp-${{ matrix.wp-versions }}
+              path: |
+                  !**/node_modules/
+                  !**/vendor/
