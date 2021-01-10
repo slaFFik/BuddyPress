@@ -18,22 +18,21 @@ jobs:
     env:
       php-ini-values: post_max_size=256M
       wp-bp-directory: src/wp-content/plugins/buddypress
-      DB_HOST: 127.0.0.1
-      DB_TABLE_PREFIX: wp_
-      DB_NAME: wordpress_test
-      DB_USER: root
-      DB_PASSWORD: ''
+      MYSQL_DATABASE: wordpress_test
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ''
+      MYSQL_HOST: '127.0.0.1'
 
     services:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_DATABASE: ${{ env.DB_NAME }}
-          MYSQL_USER: ${{ env.DB_USER }}
-          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ env.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ env.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ env.MYSQL_PASSWORD }}
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
-          - 3306:3306
+          - 3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
@@ -101,21 +100,22 @@ jobs:
       - name: Install phpunit 5.x
         if: ${{ matrix.php-versions == '5.6' }}
         run: |
-          composer global require --dev phpunit/phpunit ^5
+          composer global require --dev phpunit/phpunit ^5 --prefer-dist --no-progress --ansi
           phpunit --version
 
       - name: Install phpunit 6.x
         if: ${{ matrix.php-versions == '7.4' }}
         run: |
-          composer global require --dev phpunit/phpunit ^6
+          composer global require --dev phpunit/phpunit ^6 --prefer-dist --no-progress --ansi
           phpunit --version
 
       - name: Set up tests config
         run: |
           cp wp-tests-config-sample.php wp-tests-config.php
-          sed -i "s/youremptytestdbnamehere/wordpress_test/" wp-tests-config.php
-          sed -i "s/yourusernamehere/root/" wp-tests-config.php
-          sed -i "s/yourpasswordhere//" wp-tests-config.php
+          sed -i "s/youremptytestdbnamehere/${{ env.MYSQL_DATABASE }}/" wp-tests-config.php
+          sed -i "s/yourusernamehere/${{ env.MYSQL_USER }}/" wp-tests-config.php
+          sed -i "s/yourpasswordhere/${{ env.MYSQL_PASSWORD }}/" wp-tests-config.php
+          sed -i "s/localhost/${{ env.MYSQL_HOST }}/" wp-tests-config.php
 
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
