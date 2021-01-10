@@ -22,14 +22,14 @@ jobs:
       wp-bp-directory: src/wp-content/plugins/buddypress
       DB_DATABASE: wordpress_test
       DB_USER: root
-      DB_PASSWORD: ''
+      DB_PASSWORD: 'root'
       DB_HOST: localhost
 
     steps:
       - run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE wordpress_test;' -uroot
-          mysql -e 'SHOW DATABASES;' -uroot
+          mysql -e 'CREATE DATABASE wordpress_test;' -uroot -proot
+          mysql -e 'SHOW DATABASES;' -uroot -proot
 
       - name: Cancel previous runs of this workflow
         uses: styfle/cancel-workflow-action@0.6.0
