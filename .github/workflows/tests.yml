@@ -22,14 +22,14 @@ jobs:
       wp-bp-directory: src/wp-content/plugins/buddypress
       DB_DATABASE: wordpress_test
       DB_USER: root
-      DB_PASSWORD: password
+      DB_PASSWORD: ''
       DB_HOST: localhost
-
-
 
     steps:
       - run: |
-            sudo /etc/init.d/mysql start
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE wordpress_test;' -uroot
+          mysql -e 'SHOW DATABASES;' -uroot
 
       - name: Cancel previous runs of this workflow
         uses: styfle/cancel-workflow-action@0.6.0
@@ -121,6 +121,3 @@ jobs:
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
         run: phpunit
-        env:
-          DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-
