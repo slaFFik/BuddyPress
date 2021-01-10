@@ -18,6 +18,23 @@ jobs:
     env:
       php-ini-values: post_max_size=256M
       wp-bp-directory: src/wp-content/plugins/buddypress
+      DB_HOST: 127.0.0.1
+      DB_TABLE_PREFIX: wp_
+      DB_NAME: wordpress_test
+      DB_USER: root
+      DB_PASSWORD: ''
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Cancel previous runs of this workflow
@@ -93,12 +110,14 @@ jobs:
           composer global require --dev phpunit/phpunit ^6
           phpunit --version
 
+      - name: Set up tests config
+        run: |
+          cp wp-tests-config-sample.php wp-tests-config.php
+          sed -i "s/youremptytestdbnamehere/wordpress_test/" wp-tests-config.php
+          sed -i "s/yourusernamehere/root/" wp-tests-config.php
+          sed -i "s/yourpasswordhere//" wp-tests-config.php
+
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
         run: phpunit
-#          - name: Set up tests config
-#            run: |
-#                cp wp-tests-config-sample.php wp-tests-config.php
-#                sed -i "s/youremptytestdbnamehere/wordpress_test/" wp-tests-config.php
-#                sed -i "s/yourusernamehere/root/" wp-tests-config.php
-#                sed -i "s/yourpasswordhere//" wp-tests-config.php
+
