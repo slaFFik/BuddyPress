@@ -20,7 +20,7 @@ jobs:
       wp-bp-directory: src/wp-content/plugins/buddypress
       MYSQL_DATABASE: wordpress_test
       MYSQL_USER: root
-      MYSQL_PASSWORD: ''
+      MYSQL_PASSWORD: root
       MYSQL_HOST: '127.0.0.1'
 
     services:
@@ -116,6 +116,13 @@ jobs:
           sed -i "s/yourusernamehere/${{ env.MYSQL_USER }}/" wp-tests-config.php
           sed -i "s/yourpasswordhere/${{ env.MYSQL_PASSWORD }}/" wp-tests-config.php
           sed -i "s/localhost/${{ env.MYSQL_HOST }}/" wp-tests-config.php
+          sed -i "s/localhost/${{ env.MYSQL_HOST }}:${{ job.services.mysql.ports[3306] }}/" wp-tests-config.php
+
+      - name: Upload build artifact (TEMP)
+        uses: actions/upload-artifact@v2
+        with:
+          name: wp-${{ matrix.wp-versions }}-php-${{ matrix.php-versions }}
+          path: wp-tests-config.php
 
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
