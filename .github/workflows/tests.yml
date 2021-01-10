@@ -10,10 +10,8 @@ jobs:
 
     strategy:
       matrix:
-        wp-versions: [ 5.6 ]
-        php-versions: [ 7.4 ]
-        #wp-versions: [ 4.9, master ]
-        #php-versions: [ 5.6, 7.4 ]
+        wp-versions: [ 4.9, master ]
+        php-versions: [ 5.6, 7.4 ]
 
     name: WP ${{ matrix.wp-versions }} on PHP ${{ matrix.php-versions }}
 
@@ -22,14 +20,12 @@ jobs:
       wp-bp-directory: src/wp-content/plugins/buddypress
       DB_DATABASE: wordpress_test
       DB_USER: root
-      DB_PASSWORD: 'root'
-      DB_HOST: localhost
+      DB_PASSWORD: root
 
     steps:
       - run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE wordpress_test;' -uroot -proot
-          mysql -e 'SHOW DATABASES;' -uroot -proot
+          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u ${{ env.DB_USER }} -p ${{ env.DB_PASSWORD }}
 
       - name: Cancel previous runs of this workflow
         uses: styfle/cancel-workflow-action@0.6.0
@@ -110,13 +106,6 @@ jobs:
           sed -i "s/youremptytestdbnamehere/${{ env.DB_DATABASE }}/" wp-tests-config.php
           sed -i "s/yourusernamehere/${{ env.DB_USER }}/" wp-tests-config.php
           sed -i "s/yourpasswordhere/${{ env.DB_PASSWORD }}/" wp-tests-config.php
-          sed -i "s/localhost/${{ env.DB_HOST }}:${{ job.services.mysql.ports['3306'] }}/" wp-tests-config.php
-
-      - name: Upload build artifact (TEMP)
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-${{ matrix.wp-versions }}-php-${{ matrix.php-versions }}
-          path: wp-tests-config.php
 
       - name: Run phpunit tests
         working-directory: ${{ env.wp-bp-directory }}
