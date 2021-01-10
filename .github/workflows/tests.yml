@@ -21,7 +21,7 @@ jobs:
       MYSQL_DATABASE: wordpress_test
       MYSQL_USER: root
       MYSQL_PASSWORD: root
-      MYSQL_HOST: '127.0.0.1'
+      MYSQL_HOST: 127.0.0.1
 
     services:
       mysql:
@@ -32,7 +32,7 @@ jobs:
           MYSQL_PASSWORD: ${{ env.MYSQL_PASSWORD }}
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
         ports:
-          - 3306
+          - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
@@ -119,7 +119,6 @@ jobs:
           sed -i "s/youremptytestdbnamehere/${{ env.MYSQL_DATABASE }}/" wp-tests-config.php
           sed -i "s/yourusernamehere/${{ env.MYSQL_USER }}/" wp-tests-config.php
           sed -i "s/yourpasswordhere/${{ env.MYSQL_PASSWORD }}/" wp-tests-config.php
-          sed -i "s/localhost/${{ env.MYSQL_HOST }}/" wp-tests-config.php
           sed -i "s/localhost/${{ env.MYSQL_HOST }}:${{ job.services.mysql.ports[3306] }}" wp-tests-config.php
 
       - name: Upload build artifact (TEMP)
