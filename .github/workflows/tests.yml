@@ -82,10 +82,11 @@ jobs:
             working-directory: ${{ env.wp-bp-directory }}
             run: npm ci
 
+          - name: List of all the files
+            run: ls -R > list.txt
+
           - name: Upload build artifact (temp)
             uses: actions/upload-artifact@v2
             with:
               name: wp-${{ matrix.wp-versions }}
-              path: |
-                  !**/node_modules/
-                  !**/vendor/
+              path: list.txt
