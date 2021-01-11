@@ -17,6 +17,7 @@ jobs:
 
     env:
       php-ini-values: post_max_size=256M
+      php-extensions: gd, json, mbstring, mysql, dom, fileinfo, xml, zip, curl, bcmath, intl
       wp-bp-directory: src/wp-content/plugins/buddypress
       DB_DATABASE: wordpress_test
       DB_USER: root
@@ -50,6 +51,7 @@ jobs:
         with:
           tools: pecl
           php-version: ${{ matrix.php-versions }}
+          extensions: ${{ env.php-extensions }}
           ini-values: ${{ env.php-ini-values }}
         env:
           update: true
