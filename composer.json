@@ -26,13 +26,22 @@
 		"source": "https://buddypress.trac.wordpress.org/browser/",
 		"wiki": "https://codex.buddypress.org/"
 	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"config": {
+		"preferred-install": "dist",
+		"sort-packages": true,
+		"platform": {
+			"php": "5.6"
+		}
+	},
 	"require": {
-		"composer/installers": "~1.0",
-		"php": ">=5.3.0"
+		"php": "^5.6|^7.4|^8.0",
+		"composer/installers": "~1.0"
 	},
 	"require-dev": {
 		"phpcompatibility/phpcompatibility-wp": "*",
-		"dealerdirect/phpcodesniffer-composer-installer": "^0.4.3",
-		"wp-phpunit/wp-phpunit": "^5.4"
+		"dealerdirect/phpcodesniffer-composer-installer": "^v0.7.1",
+		"wp-phpunit/wp-phpunit": "^5.6.0"
 	}
 }
